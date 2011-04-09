@@ -1,0 +1,52 @@
+(package com.android.demo.notepad1)
+(import android.app.list-activity)
+(import android.os.bundle)
+(import android.view.menu)
+(import android.view.menu-item)
+(import android.widget.simple-cursor-adapter)
+
+(defclass notepadv1 (list-activity)
+  ((m-note-number :initform 1 :visibility :private)
+   (m-db-helper :visibility :private :type notes-db-adapter)))
+
+(defconstant +insert-id+ (in (the menu) +first+))
+
+(defmethod on-create ((this notepadv1) (saved-instance-state bundle))
+  (on-create super saved-instance-state)
+  (set-content-view (java-expression int "R.layout.notepad_list"))
+  (in this 
+      (setf m-db-helper (new 'notes-db-adapter this))
+      (open m-db-helper))
+  (fill-data this))
+
+(defmethod on-create-options-menu ((this notepadv1) (menu menu))
+  (let ((result (on-create-options-menu super menu)))
+    (add menu 0 +insert-id+ 0 (java-expression int "R.string.menu_insert"))
+    result))
+
+(defmethod on-options-item-selected ((this notepadv1) (item menu-item))
+  (case (get-item-id item)
+    (+insert-id+ (create-note this) t)
+    (t (on-options-item-selected super item))))
+
+(defmethod create-note ((this notepadv1))
+  (declare (visibility private))
+  (in this
+      (create-note m-db-helper
+                   (concatenate 'string "Note " m-note-number)
+                   ""))
+  (incf m-note-number)
+  (fill-data this))
+
+(defmethod fill-data ((this notepadv1))
+  (let ((cursor (in this (fetch-all-notes m-db-helper)))
+        (from (vector (in (the notes-db-adapter) +key-title+)))
+        (to (vector (java-expression int "R.id.text1"))))
+    ;; Get all of the notes from the database and create the item list
+    (start-managing-cursor this cursor)
+    
+    ;; Now create an array adapter and set it to display using our row
+    (let ((notes
+           (new 'simple-cursor-adapter this
+                (java-expression int "R.layout.notes_row") cursor from to)))
+      (set-list-adapter this notes))))
