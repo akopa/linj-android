@@ -53,7 +53,7 @@
                                   "to "
                                   new-version
                                   ", which will destroy all old data")))
-        (exec-s-q-l db "DROP TABLE IF EXISTS notes")
+        (exec-s-q-l db (+ "DROP TABLE IF EXISTS " +database-table+))
         (on-create this db))))))
 
 
@@ -120,8 +120,8 @@
  * @param rowId id of note to delete
  * @return true if deleted, false otherwise
  */"
-  (let ((note-match (concatenate 'string +key-rowid+ "=" row-id)))
-    (in this (> (delete m-db +database-table+ note-match null) 0))))
+  (let ((where (concatenate 'string +key-rowid+ "=" row-id)))
+    (in this (> (delete m-db +database-table+ where null) 0))))
 
 (defmethod fetch-all-notes ((this notes-db-adapter))
   "/**
@@ -129,8 +129,8 @@
  * 
  * @return Cursor over all notes
  */"
-  (let ((query-path (vector +key-rowid+ +key-title+ +key-body+)))
-    (in this (query m-db +database-table+ query-path
+  (let ((columns (vector +key-rowid+ +key-title+ +key-body+)))
+    (in this (query m-db +database-table+ columns
                     null null null null null))))
 
 (defmethod fetch-note ((this notes-db-adapter) (row-id long))
@@ -141,10 +141,10 @@
  * @return Cursor positioned to matching note, if found
  * @throws SQLException if note could not be found/retrieved
  */"
-  (let* ((query-path (vector +key-rowid+ +key-title+ +key-body+))
-         (note-match (concatenate 'string +key-rowid+ "=" row-id))
+  (let* ((columns (vector +key-rowid+ +key-title+ +key-body+))
+         (where (concatenate 'string +key-rowid+ "=" row-id))
          (m-cursor (in this
-                       (query m-db t +database-table+ query-path note-match
+                       (query m-db t +database-table+ columns where
                               null null null null null))))
     (when (not (null m-cursor))
       (move-to-first m-cursor))
@@ -163,7 +163,7 @@
  * @return true if the note was successfully updated, false otherwise
  */"
   (let ((args (new 'content-values))
-        (note-match (concatenate 'string +key-rowid+ "=" row-id)))
+        (where (concatenate 'string +key-rowid+ "=" row-id)))
     (put args +key-title+ title)
     (put args +key-body+ body)
-    (in this (> (update m-db +database-table+ args note-match null) 0))))
+    (in this (> (update m-db +database-table+ args where null) 0))))
