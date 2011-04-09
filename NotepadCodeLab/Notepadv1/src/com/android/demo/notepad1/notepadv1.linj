@@ -1,0 +1,19 @@
+(package com.android.demo.notepad1)
+(import android.app.activity)
+(import android.os.bundle)
+(import android.view.menu)
+(import android.view.menu-item)
+
+(defclass notepadv1 (activity)
+  ((m-note-number :initform 1 :visibility :private)))
+
+(defmethod on-create ((this notepadv1) (saved-instance-state bundle))
+  (on-create super saved-instance-state))
+
+(defmethod on-create-options-menu ((this notepadv1) (menu menu))
+  ;; TODO Auto-generated method stub
+  (on-create-options-menu super menu))
+
+(defmethod on-options-item-selected ((this notepadv1) (item menu-item))
+  ;; TODO Auto-generated method stub
+  (on-options-item-selected super item))
