@@ -29,8 +29,7 @@
     (+insert-id+ (create-note this) t)
     (t (on-options-item-selected super item))))
 
-(defmethod create-note ((this notepadv1))
-  (declare (visibility private))
+(defmethod create-note ((this notepadv1)) :visibility :private
   (in this
       (create-note m-db-helper
                    (concatenate 'string "Note " m-note-number)

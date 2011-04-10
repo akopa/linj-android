@@ -1,7 +1,7 @@
 (package com.android.demo.notepad1)
 (import android.content.content-values)
-(import android.content.Context)
-(import android.database.Cursor)
+(import android.content.context)
+(import android.database.cursor)
 (import android.database.s-q-l-exception)
 (import android.database.sqlite.s-q-lite-database)
 (import android.database.sqlite.s-q-lite-open-helper)
@@ -19,19 +19,32 @@
 
 (defclass  notes-db-adapter ()
   ((+tag+ :final t 
-          :initform "NotesDbAdapter"
           :visibility :private
-          :allocation :class)
-   (m-db-helper
-	:type database-helper
-	:visibility :private)
-   (m-db
-	:type s-q-lite-database
-	:visibility :private)
-   (m-ctx
-	:type context
-        :visibility :private
-        :final t))
+          :allocation :class
+          :initform "NotesDbAdapter")
+   (+database-create+ :final t 
+                      :visibility :private
+                      :allocation :class 
+                      :initform (+ "create table notes(_id integer"
+                                   " primary key autoincrement, title text"
+                                   " not null, body text not null);"))
+   (+database-name+ :final t 
+                    :visibility :private
+                    :allocation :class
+                    :initform "data")
+   (+database-table+ :final t 
+                     :visibility :private
+                     :allocation :class
+                     :initform "notes")
+   (+database-version+ :final t 
+                       :visibility :private
+                       :allocation :class
+                       :initform 2)
+
+   (m-db-helper :type database-helper :visibility :private)
+   (m-db :type s-q-lite-database :visibility :private)
+
+   (m-ctx :type context :visibility :private :final t))
   (:body
    (defclass database-helper (s-q-lite-open-helper) ()
      (:visibility :private)
@@ -39,6 +52,7 @@
      (:body 
       (defnew (context/context)
           (call-next-method context +database-name+ null +database-version+))
+      
       (defmethod on-create ((this database-helper) (db s-q-lite-database))
         (exec-s-q-l db +database-create+))
 
@@ -61,14 +75,6 @@
 (defconstant +key-body+ "body")
 (defconstant +key-rowid+ "_id")
 
-;;sql
-(defconstant +database-create+ 
-  "create table notes (_id integer primary key autoincrement, title text not null, body text not null);")
-
-(defconstant +database-name+ "data")
-(defconstant +database-table+ "notes")
-(defconstant +database-version+ 2)
-
 (defnew (context/context)
   "/**
  * Constructor - takes the context to allow the database to be
@@ -79,7 +85,7 @@
   (in this (setf m-ctx context)))
 
 
-(defmethod open ((this notes-db-adapter))
+(defmethod open ((this notes-db-adapter)) :throws s-q-l-exception
   "/**
  * Open the notes database. If it cannot be opened, try to create a new
  * instance of the database. If it cannot be created, throw an exception to
@@ -89,7 +95,6 @@
  *        initialization call)
  * @throws SQLException if the database could be neither opened or created
  */"
-  (declare (throws s-q-l-exception))
   (in this
       (setf m-db-helper (new 'database-helper m-ctx)
             m-db (get-writable-database m-db-helper)))
