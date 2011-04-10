@@ -1,0 +1,107 @@
+(package com.android.demo.notepad2)
+(import android.app.list-activity)
+(import android.content.intent)
+(import android.database.cursor)
+(import android.os.bundle)
+(import android.view.context-menu)
+(import android.view.context-menu/context-menu-info)
+(import android.view.menu)
+(import android.view.menu-item)
+(import android.view.view)
+(import android.widget.list-view)
+(import android.widget.simple-cursor-adapter)
+
+(defclass notepadv2 (list-activity)
+  ((+activity-create+ :visibility :private
+                      :final t
+                      :allocation :class
+                      :initform 0)
+   (+activity-edit+ :visibility :private
+                    :final t
+                    :allocation :class
+                    :initform 1)
+   
+   (+insert-id+ :visibility :private
+                :final t
+                :allocation :class
+                :initform (in (the menu) +first+))
+   (+delete-id+ :visibility :private
+                :final t
+                :allocation :class
+                :initform (in (the menu) (1+ +first+)))
+   
+   (m-db-helper :visibility :private :type notes-db-adapter)
+   (m-notes-cursor :visibility :private :type cursor)))
+
+(defmethod on-create ((this notepadv2) (saved-instance-state bundle))
+  (on-create super saved-instance-state)
+  (set-content-view (java-expression int "R.layout.notes_list"))
+  (in this 
+      (setf m-db-helper (new 'notes-db-adapter this))
+      (open m-db-helper))
+  (fill-data this))
+
+(defmethod fill-data ((this notepadv2))
+  ;; Get all of the notes from the database and create the item list
+  (in this 
+      (setf m-notes-cursor (fetch-all-notes m-db-helper))
+      (start-managing-cursor this m-notes-cursor))
+  (let* ((from (vector (in (the notes-db-adapter) +key-title+)))
+         (to (vector (java-expression int "R.id.text1")))
+         ;; Now create an array adapter and set it to display using our row
+         (notes (new 'simple-cursor-adapter this
+                     (java-expression int "R.layout.notes_row")
+                     (in this m-notes-cursor) from to)))
+    (set-list-adapter this notes)))
+
+(defmethod on-create-options-menu ((this notepadv2) (menu menu))
+  (on-create-options-menu super menu)
+  (add menu 0 +insert-id+ 0 (java-expression int "R.string.menu_insert"))
+  t)
+
+(defmethod on-menu-item-selected ((this notepadv2)
+                                  (feature-id int)
+                                  (item menu-item))
+  (case (get-item-id item)
+    (+insert-id+ (create-note this) t)
+    (t (on-menu-item-selected super feature-id item))))
+
+(defmethod on-create-context-menu ((this notepadv2)
+                                   (menu context-menu)
+                                   (view view)
+                                   (menu-info context-menu/context-menu-info))
+  (on-create-context-menu super menu view menu-info)
+  ;; TODO: fill in rest of method
+)
+
+(defmethod on-context-item-selected ((this notepadv2) (item menu-item))
+  (on-context-item-selected super item)
+  ;; TODO: fill in rest of method
+)
+
+(defmethod create-note ((this notepadv2)) :visibility :private :returns void
+  ;; TODO: fill in implementation  
+)
+
+(defmethod on-list-item-click ((this notepadv2)
+                               (list-view list-view)
+                               (view view)
+                               (position int)
+                               (id long))
+  :visibility :protected
+  (on-list-item-click super list-view view position id)  
+  ;; TODO: fill in rest of method
+
+)
+
+(defmethod on-activity-result ((this notepadv2)
+                               (request-code int)
+                               (result-code int)
+                               (intent intent))
+  :visibility :protected
+  (on-activity-result super request-code result-code intent)
+  ;; TODO: fill in rest of method
+  
+)
+
+
