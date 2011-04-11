@@ -46,9 +46,14 @@
   (in this 
       (setf m-notes-cursor (fetch-all-notes m-db-helper))
       (start-managing-cursor this m-notes-cursor))
+  
+  ;;  Create an array to specify the fields we want to display in the list
+  ;;  (only TITLE)      
   (let* ((from (vector (in (the notes-db-adapter) +key-title+)))
+         ;;  and an array of the fields we want to bind those fields to
+         ;;  (in this case just text1)
          (to (vector (java-expression int "R.id.text1")))
-         ;; Now create an array adapter and set it to display using our row
+         ;; Now create cursor adapter and set it to display
          (notes (new 'simple-cursor-adapter this
                      (java-expression int "R.layout.notes_row")
                      (in this m-notes-cursor) from to)))
